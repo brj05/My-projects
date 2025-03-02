@@ -1,0 +1,168 @@
+// flutter to- do list project
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'To-Do App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.blue.shade50,
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.blue.shade700,
+          elevation: 5,
+          titleTextStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: Colors.blue.shade600,
+        ),
+      ),
+      home: TodoApp(),
+    );
+  }
+}
+
+class TodoApp extends StatefulWidget {
+  @override
+  _TodoAppState createState() => _TodoAppState();
+}
+
+class _TodoAppState extends State<TodoApp> {
+  List<Map<String, dynamic>> _tasks = [];
+  int _selectedIndex = 0;
+  final TextEditingController _taskController = TextEditingController();
+
+  void _addTask() {
+    if (_taskController.text.isNotEmpty) {
+      setState(() {
+        _tasks.add({"title": _taskController.text, "completed": false});
+      });
+      _taskController.clear();
+      Navigator.pop(context);
+    }
+  }
+
+  void _toggleTask(int index) {
+    setState(() {
+      _tasks[index]["completed"] = !_tasks[index]["completed"];
+    });
+  }
+
+  void _deleteTask(int index) {
+    setState(() {
+      _tasks.removeAt(index);
+    });
+  }
+
+  void _showAddTaskDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          title: Text("Add New Task", style: TextStyle(fontWeight: FontWeight.bold)),
+          content: TextField(
+            controller: _taskController,
+            decoration: InputDecoration(
+              hintText: "Enter task",
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text("Cancel", style: TextStyle(color: Colors.redAccent)),
+              onPressed: () {
+                _taskController.clear();
+                Navigator.pop(context);
+              },
+            ),
+            ElevatedButton(
+              child: Text("Add"),
+              onPressed: _addTask,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("To-Do App")),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            UserAccountsDrawerHeader(
+              accountName: Text("Bhoomi Jaiswal"),
+              accountEmail: Text("bhoomi@email.com"),
+              currentAccountPicture: CircleAvatar(child: Icon(Icons.person, size: 40)),
+              decoration: BoxDecoration(color: Colors.blue.shade600),
+            ),
+            ListTile(leading: Icon(Icons.home), title: Text("Home"), onTap: () => Navigator.pop(context)),
+            ListTile(leading: Icon(Icons.settings), title: Text("Settings"), onTap: () => Navigator.pop(context)),
+          ],
+        ),
+      ),
+      body: _selectedIndex == 0
+          ? (_tasks.isEmpty
+              ? Center(child: Text("No tasks yet! Add a new task.", style: TextStyle(fontSize: 18)))
+              : ListView.builder(
+                  padding: EdgeInsets.all(10),
+                  itemCount: _tasks.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 3,
+                      child: ListTile(
+                        leading: IconButton(
+                          icon: Icon(
+                            _tasks[index]["completed"] ? Icons.check_circle : Icons.radio_button_unchecked,
+                            color: _tasks[index]["completed"] ? Colors.green : Colors.grey,
+                          ),
+                          onPressed: () => _toggleTask(index),
+                        ),
+                        title: Text(
+                          _tasks[index]["title"],
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            decoration: _tasks[index]["completed"] ? TextDecoration.lineThrough : null,
+                          ),
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.redAccent),
+                          onPressed: () => _deleteTask(index),
+                        ),
+                      ),
+                    );
+                  },
+                ))
+          : Center(child: Text("Settings Page", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddTaskDialog,
+        child: Icon(Icons.add, size: 30),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: "Tasks"),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blue.shade700,
+        unselectedItemColor: Colors.grey,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
+    );
+  }
+}
